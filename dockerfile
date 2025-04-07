@@ -12,7 +12,7 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 COPY . .
 
 # Expone el puerto en el que se ejecutará la aplicación (por defecto Flask usa el 5000)
-EXPOSE 5000
+EXPOSE 3306
 
 # Establece la variable de entorno para indicar a Flask cuál es la aplicación
 ENV FLASK_APP=app.py
