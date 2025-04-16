@@ -25,7 +25,7 @@ def generar_token():
 def registrar():
      # Datos que se deben de mandar
     data = request.json
-    email = data['email']
+    email = data['email'].lower()
     nombre = data['nombre']
     clave = data['clave']
 
@@ -49,11 +49,12 @@ def registrar():
     MAIL_USERNAME = os.getenv('MAIL_USERNAME')
     MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
     MAIL_SEND = os.getenv('MAIL_SEND')
+    BASE_URL = os.getenv('BASE_URL')
 
     # Configurar destinatario y mensaje
-    destinatario = 'nicolasdavid@gmail.com'
+    destinatario = email
     asunto = 'Verifica tu correo - The Original Lab'
-    cuerpo = 'Por favor valida tu cuenta haciendo click en el siguiente enlace: ' + token
+    cuerpo = 'Por favor valida tu cuenta haciendo click en el siguiente enlace: \n' + BASE_URL + '?email=' + email + '&token=' + token
 
     # Crear el mensaje
     mensaje = MIMEMultipart()
