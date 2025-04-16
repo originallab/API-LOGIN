@@ -5,13 +5,19 @@ import jwt
 import random
 import string
 from datetime import datetime, timedelta
+import os
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
 
 # Estructura modular especialmente de flask, que sirve para la organizacion de las rutas de las apis.
 auth_bp = Blueprint('api', __name__)
 
+
 # Metodo para generar el token
 def generar_token():
-    """metodo para generar el token de manera aleatoria de 6 digitos"""
+    """metodo para generar el token de manera aleatoria de 5 caracteres"""
     return ''.join(random.choices(string.ascii_letters + string.digits, k=5))
 
 # metodo para hacer un registro (Primer endpoint-POST)
@@ -35,6 +41,41 @@ def registrar():
     nuevo = Usuario(email=email, nombre=nombre, clave=hash_clave, token_validacion=token)
     db.session.add(nuevo)
     db.session.commit()
+
+
+    MAIL_HOST = os.getenv('MAIL_HOST')
+    MAIL_PORT = int(os.getenv('MAIL_PORT'))
+    MAIL_SECURE = os.getenv('MAIL_SECURE', 'false').lower() == 'true'
+    MAIL_USERNAME = os.getenv('MAIL_USERNAME')
+    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
+    MAIL_SEND = os.getenv('MAIL_SEND')
+
+    # Configurar destinatario y mensaje
+    destinatario = 'nicolasdavid@gmail.com'
+    asunto = 'Verifica tu correo - The Original Lab'
+    cuerpo = 'Por favor valida tu cuenta haciendo click en el siguiente enlace: ' + token
+
+    # Crear el mensaje
+    mensaje = MIMEMultipart()
+    mensaje['From'] = MAIL_SEND
+    mensaje['To'] = destinatario
+    mensaje['Subject'] = asunto
+    mensaje.attach(MIMEText(cuerpo, 'plain'))
+
+    # Enviar el correo
+    try:
+        servidor = smtplib.SMTP(MAIL_HOST, MAIL_PORT)
+        if not MAIL_SECURE:
+            servidor.starttls()
+        servidor.login(MAIL_USERNAME, MAIL_PASSWORD)
+        servidor.send_message(mensaje)
+        servidor.quit()
+        print("Correo enviado con éxito.")
+    except Exception as e:
+        print("Error al enviar el correo:", e)
+
+
+
 
     return jsonify({'mensaje': 'Usuario registrado con exito', 'Token': token})
 
