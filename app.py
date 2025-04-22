@@ -5,7 +5,7 @@ from auth.auth import auth_bp  # Importa el Blueprint de autenticación
 app = Flask(__name__)
 
 # Configuración de la aplicación
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:pruebas_login@theoriginallab_bd_login:3306/pruebas'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://adminUser:adminUser@theoriginallab_bd_sistema:3306/usuarios'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'secret-key'  # Clave secreta para JWT
 
