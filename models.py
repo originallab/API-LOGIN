@@ -9,5 +9,7 @@ class Usuario(db.Model):
     email = db.Column(db.String(120),  nullable=False)
     nombre = db.Column(db.String(120), nullable=False)
     clave = db.Column(db.String(120), nullable=False)
+    telefono = db.Column(db.String(120), nullable=False)
+    foto_perfil = db.Column(db.String(120), nullable=False)
     token_validacion = db.Column(db.String(120))
     validado = db.Column(db.Boolean, default=False)
