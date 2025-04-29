@@ -41,7 +41,7 @@ def registrar():
     token = generar_token()
 
     # Funcion para crear un nuevo usuario
-    nuevo = Usuario(email=email, nombre=nombre, clave=hash_clave, token_validacion=token)
+    nuevo = Usuario(email=email, nombre=nombre, clave=hash_clave,  telefono=telefono,  foto_perfil=foto_perfil, token_validacion=token)
     db.session.add(nuevo)
     db.session.commit()
 
