@@ -28,6 +28,8 @@ def registrar():
     email = data['email'].lower()
     nombre = data['nombre']
     clave = data['clave']
+    telefono = data['telefono']
+    foto_peril = data['foto_perfil']
 
     # verificacion si el email ya esta registrado
     if Usuario.query.filter_by(email=email).first():
