@@ -18,6 +18,7 @@ auth_bp = Blueprint('api', __name__)
 def after_request(response):
     header = response.headers
     header['Access-Control-Allow-Origin'] = '*'
+    header['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept'
     return response
 
 
@@ -102,7 +103,7 @@ def validation():
     if not user:
         return jsonify({'mensaje': 'Token inválido'}), 400
 
-    user.validado = True
+    user.validated = True
     db.session.commit()
     return jsonify({'mensaje': 'Cuenta validada correctamente'})
 
@@ -124,12 +125,12 @@ def login():
         return jsonify({'mensaje': 'Contraseña incorrecta'}), 401
 
     # Verificacion de validacion
-    if not user.validado:
+    if not user.validated:
         return jsonify({'mensaje': 'Cuenta no validada'}), 403
 
     # Esta parte sirve para ir monitoriando la expiracion del token, en este caso de 1 hr
     payload = {
-        'id_User': user.id_User,
+        'user_id': user.user_id,
         'exp': datetime.utcnow() + timedelta(hours=1)
     }
 
