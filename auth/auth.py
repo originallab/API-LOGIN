@@ -35,6 +35,8 @@ def register():
     email = data['email'].lower()
     name = data['name']
     password = data['password']
+    phone = ""
+    profile_img = ""
     if data.get('phone') and data['phone'] != "":
         phone = data['phone']
     if data.get('profile_img') and data['profile_img'] != "":
