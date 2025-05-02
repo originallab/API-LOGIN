@@ -34,9 +34,9 @@ def register():
     email = data['email'].lower()
     name = data['name']
     password = data['password']
-    if data['phone']:
+    if data.get('phone'):
         phone = data['phone']
-    if data['profile_img']:
+    if data.get('profile_img'):
         profile_img = data['profile_img']
    
 
