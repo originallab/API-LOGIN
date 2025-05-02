@@ -46,7 +46,7 @@ def register():
     token = generar_token()
 
     # Funcion para crear un nuevo usuario
-    nuevo = User(email=email, name=name, password=hash_password,  phone=phone,  profile_img=profile_img, token_validacion=token)
+    nuevo = User(email=email, name=name, password=hash_password,  phone=phone,  profile_img=profile_img, token=token)
     db.session.add(nuevo)
     db.session.commit()
 
@@ -95,7 +95,7 @@ def validation():
     email = request.args.get('email')
     token = request.args.get('token')
 
-    user = Usuario.query.filter_by(email=email, token_validacion=token).first()
+    user = Usuario.query.filter_by(email=email, token=token).first()
     if not user:
         return jsonify({'mensaje': 'Token inválido'}), 400
 

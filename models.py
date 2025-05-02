@@ -11,5 +11,5 @@ class User(db.Model):
     token = db.Column(db.String(120), nullable=False)
     phone = db.Column(db.String(120), nullable=True)
     profile_img = db.Column(db.String(120), nullable=True)
-    token_validacion = db.Column(db.String(120))
+    token = db.Column(db.String(120))
     validated = db.Column(db.Boolean, default=False)
