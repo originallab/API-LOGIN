@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, current_app
-from models import db, Usuario
+from models import db, User
 import bcrypt
 import jwt
 import random
@@ -13,6 +13,11 @@ from email.mime.multipart import MIMEMultipart
 
 # Estructura modular especialmente de flask, que sirve para la organizacion de las rutas de las apis.
 auth_bp = Blueprint('api', __name__)
+@auth_bp.after_request 
+def after_request(response):
+    header = response.headers
+    header['Access-Control-Allow-Origin'] = '*'
+    return response
 
 
 # Metodo para generar el token
@@ -21,27 +26,27 @@ def generar_token():
     return ''.join(random.choices(string.ascii_letters + string.digits, k=5))
 
 # metodo para hacer un registro (Primer endpoint-POST)
-@auth_bp.route('/registrar', methods=['POST'])
-def registrar():
+@auth_bp.route('/register', methods=['POST'])
+def register():
      # Datos que se deben de mandar
     data = request.json
     email = data['email'].lower()
-    nombre = data['nombre']
-    clave = data['clave']
-    telefono = data['telefono']
-    foto_perfil = data['foto_perfil']
+    name = data['name']
+    password = data['password']
+    phone = data['phone']
+    profile_img = data['profile_img']
    
 
     # verificacion si el email ya esta registrado
-    if Usuario.query.filter_by(email=email).first():
+    if User.query.filter_by(email=email).first():
         return jsonify({'mensaje': 'Este email ya ha sido creado con anterioridad'}), 400
 
     # Hash de la contraseña
-    hash_clave = bcrypt.hashpw(clave.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    hash_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     token = generar_token()
 
     # Funcion para crear un nuevo usuario
-    nuevo = Usuario(email=email, nombre=nombre, clave=hash_clave,  telefono=telefono,  foto_perfil=foto_perfil, token_validacion=token)
+    nuevo = User(email=email, name=name, password=hash_password,  phone=phone,  profile_img=profile_img, token_validacion=token)
     db.session.add(nuevo)
     db.session.commit()
 
@@ -84,8 +89,8 @@ def registrar():
     return jsonify({'mensaje': 'Usuario registrado con exito', 'Token': token})
 
 #  Metodo para hacer la validacion del usuario (Primer endpoint-GET)
-@auth_bp.route('/validar', methods=['GET'])
-def validar():
+@auth_bp.route('/validation', methods=['GET'])
+def validation():
     # Pasar parametros
     email = request.args.get('email')
     token = request.args.get('token')
@@ -104,7 +109,7 @@ def login():
     # pasar los parametros
     data = request.json
     email = data['email']
-    clave = data['clave']
+    password = data['password']
 
     # Verificacion de usuario
     user = Usuario.query.filter_by(email=email).first()
@@ -112,7 +117,7 @@ def login():
         return jsonify({'mensaje': 'Usuario no existe'}), 404
 
     # Verificacion de contraseña
-    if not bcrypt.checkpw(clave.encode('utf-8'), user.clave.encode('utf-8')):
+    if not bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
         return jsonify({'mensaje': 'Contraseña incorrecta'}), 401
 
     # Verificacion de validacion
