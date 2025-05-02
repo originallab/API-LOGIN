@@ -18,6 +18,7 @@ auth_bp = Blueprint('api', __name__)
 def after_request(response):
     header = response.headers
     header['Access-Control-Allow-Origin'] = '*'
+    header['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept'
     return response
 
 
