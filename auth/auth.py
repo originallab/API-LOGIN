@@ -13,6 +13,7 @@ from email.mime.multipart import MIMEMultipart
 
 # Estructura modular especialmente de flask, que sirve para la organizacion de las rutas de las apis.
 auth_bp = Blueprint('api', __name__)
+
 @auth_bp.after_request 
 def after_request(response):
     header = response.headers

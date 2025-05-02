@@ -2,9 +2,10 @@ from flask import Flask
 from models import db
 from auth.auth import auth_bp  # Importa el Blueprint de autenticación
 import os
+from flask_cors import CORS
 
 app = Flask(__name__)
-
+CORS(app)
 # Configuración de la aplicación
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('BD_LOGIN')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
