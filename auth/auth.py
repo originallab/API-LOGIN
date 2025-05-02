@@ -43,7 +43,7 @@ def register():
 
     # verificacion si el email ya esta registrado
     if User.query.filter_by(email=email).first():
-        return jsonify({'mensaje': 'Este email ya ha sido creado con anterioridad'}), 400
+        return jsonify({'message': 'Este email ya ha sido creado con anterioridad'}), 400
 
     # Hash de la contraseña
     hash_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -63,17 +63,17 @@ def register():
     MAIL_SEND = os.getenv('MAIL_SEND')
     BASE_URL = os.getenv('BASE_URL')
 
-    # Configurar destinatario y mensaje
+    # Configurar destinatario y message
     destinatario = email
     asunto = 'Verifica tu correo - The Original Lab'
     cuerpo = 'Por favor valida tu cuenta haciendo click en el siguiente enlace: \n' + BASE_URL + '?email=' + email + '&token=' + token
 
-    # Crear el mensaje
-    mensaje = MIMEMultipart()
-    mensaje['From'] = MAIL_SEND
-    mensaje['To'] = destinatario
-    mensaje['Subject'] = asunto
-    mensaje.attach(MIMEText(cuerpo, 'plain'))
+    # Crear el message
+    message = MIMEMultipart()
+    message['From'] = MAIL_SEND
+    message['To'] = destinatario
+    message['Subject'] = asunto
+    message.attach(MIMEText(cuerpo, 'plain'))
 
     # Enviar el correo
     try:
@@ -81,7 +81,7 @@ def register():
         if not MAIL_SECURE:
             servidor.starttls()
         servidor.login(MAIL_USERNAME, MAIL_PASSWORD)
-        servidor.send_message(mensaje)
+        servidor.send_message(message)
         servidor.quit()
         print("Correo enviado con éxito.")
     except Exception as e:
@@ -90,7 +90,7 @@ def register():
 
 
 
-    return jsonify({'mensaje': 'User registrado con exito', 'Token': token})
+    return jsonify({'message': 'User registrado con exito', 'Token': token})
 
 #  Metodo para hacer la validacion del User (Primer endpoint-GET)
 @auth_bp.route('/validation', methods=['GET'])
@@ -101,11 +101,11 @@ def validation():
 
     user = User.query.filter_by(email=email, token=token).first()
     if not user:
-        return jsonify({'mensaje': 'Token inválido'}), 400
+        return jsonify({'message': 'Token inválido'}), 400
 
     user.validated = True
     db.session.commit()
-    return jsonify({'mensaje': 'Cuenta validada correctamente'})
+    return jsonify({'message': 'Cuenta validada correctamente'})
 
 # Metodo para hacer el login del User (Primer endpoint-POST)
 @auth_bp.route('/login', methods=['POST'])
@@ -118,15 +118,15 @@ def login():
     # Verificacion de User
     user = User.query.filter_by(email=email).first()
     if not user:
-        return jsonify({'mensaje': 'User no existe'}), 404
+        return jsonify({'message': 'User no existe'}), 404
 
     # Verificacion de contraseña
     if not bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
-        return jsonify({'mensaje': 'Contraseña incorrecta'}), 401
+        return jsonify({'message': 'Contraseña incorrecta'}), 401
 
     # Verificacion de validacion
     if not user.validated:
-        return jsonify({'mensaje': 'Cuenta no validada'}), 403
+        return jsonify({'message': 'Cuenta no validada'}), 403
 
     # Esta parte sirve para ir monitoriando la expiracion del token, en este caso de 1 hr
     payload = {
