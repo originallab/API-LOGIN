@@ -48,7 +48,7 @@ def register():
     hash_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     token = generar_token()
 
-    # Funcion para crear un nuevo usuario
+    # Funcion para crear un nuevo User
     nuevo = User(email=email, name=name, password=hash_password,  phone=phone,  profile_img=profile_img, token=token)
     db.session.add(nuevo)
     db.session.commit()
@@ -89,16 +89,16 @@ def register():
 
 
 
-    return jsonify({'mensaje': 'Usuario registrado con exito', 'Token': token})
+    return jsonify({'mensaje': 'User registrado con exito', 'Token': token})
 
-#  Metodo para hacer la validacion del usuario (Primer endpoint-GET)
+#  Metodo para hacer la validacion del User (Primer endpoint-GET)
 @auth_bp.route('/validation', methods=['GET'])
 def validation():
     # Pasar parametros
     email = request.args.get('email')
     token = request.args.get('token')
 
-    user = Usuario.query.filter_by(email=email, token=token).first()
+    user = User.query.filter_by(email=email, token=token).first()
     if not user:
         return jsonify({'mensaje': 'Token inválido'}), 400
 
@@ -106,7 +106,7 @@ def validation():
     db.session.commit()
     return jsonify({'mensaje': 'Cuenta validada correctamente'})
 
-# Metodo para hacer el login del usuario (Primer endpoint-POST)
+# Metodo para hacer el login del User (Primer endpoint-POST)
 @auth_bp.route('/login', methods=['POST'])
 def login():
     # pasar los parametros
@@ -114,10 +114,10 @@ def login():
     email = data['email']
     password = data['password']
 
-    # Verificacion de usuario
-    user = Usuario.query.filter_by(email=email).first()
+    # Verificacion de User
+    user = User.query.filter_by(email=email).first()
     if not user:
-        return jsonify({'mensaje': 'Usuario no existe'}), 404
+        return jsonify({'mensaje': 'User no existe'}), 404
 
     # Verificacion de contraseña
     if not bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
@@ -129,7 +129,7 @@ def login():
 
     # Esta parte sirve para ir monitoriando la expiracion del token, en este caso de 1 hr
     payload = {
-        'id_usuario': user.id_usuario,
+        'id_User': user.id_User,
         'exp': datetime.utcnow() + timedelta(hours=1)
     }
 
