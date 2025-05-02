@@ -34,8 +34,10 @@ def register():
     email = data['email'].lower()
     name = data['name']
     password = data['password']
-    phone = data['phone']
-    profile_img = data['profile_img']
+    if data['phone']:
+        phone = data['phone']
+    if data['profile_img']:
+        profile_img = data['profile_img']
    
 
     # verificacion si el email ya esta registrado
