@@ -9,6 +9,7 @@ import os
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import base64
 
 
 # Estructura modular especialmente de flask, que sirve para la organizacion de las rutas de las apis.
@@ -116,6 +117,12 @@ def login():
     data = request.json
     email = data['email']
     password = data['password']
+    encoded_password = data.get("password")
+
+    try:
+        password = base64.b64decode(encoded_password).decode('utf-8')
+    except Exception as e:
+        return jsonify({"error": "Formoto de contraseña invalido"}), 400
 
     # Verificacion de User
     user = User.query.filter_by(email=email).first()
