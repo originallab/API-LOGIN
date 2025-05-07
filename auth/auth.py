@@ -126,7 +126,7 @@ def login():
     password = data['password']
     encoded_password = data.get("password")
     try:
-        password = base64.b64decode(encoded_password)
+        password = base64.b64decode(encoded_password).decode('utf-8')
     except Exception as e:
         return jsonify({"error": "Formoto de contraseña invalido"}), 400
 
