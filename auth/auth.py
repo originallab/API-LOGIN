@@ -11,6 +11,13 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import base64
 
+def decode_base64(password_b64):
+    try:
+        decoded = base64.b64decode(password_b64).decode('utf-8')
+        return decoded
+    except Exception as e:
+        print("Error al decodificar:", e)
+        return None
 
 # Estructura modular especialmente de flask, que sirve para la organizacion de las rutas de las apis.
 auth_bp = Blueprint('api', __name__)
@@ -118,9 +125,8 @@ def login():
     email = data['email']
     password = data['password']
     encoded_password = data.get('password')
-
     try:
-        password = base64.b64decode(encoded_password).decode('utf-8')
+        password = base64.b64decode(encoded_password)
     except Exception as e:
         return jsonify({"error": "Formoto de contraseña invalido"}), 400
 
