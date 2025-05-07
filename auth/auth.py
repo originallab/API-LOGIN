@@ -117,7 +117,7 @@ def login():
     data = request.json
     email = data['email']
     password = data['password']
-    encoded_password = data('password')
+    encoded_password = data.get('password')
 
     try:
         password = base64.b64decode(encoded_password).decode('utf-8')
