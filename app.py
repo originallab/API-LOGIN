@@ -24,3 +24,57 @@ def crear_base_de_datos():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+#Integracion de las nuevas funciones CRUD (METODO PARA CREAR UN REGISTRO)
+def create_values(db: Session, table_name: str, data: dict):
+    table, primary_key_column = get_table(table_name)  # Obtener la tabla y la clave primaria
+    try:
+        result = db.execute(table.insert().values(**data))
+        db.commit()
+        return result.lastrowid  # Devuelve el ID generado automáticamente
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise Exception(f"Database error: {e}")
+    
+    
+#Integracion de las nuevas funciones CRUD (METODO PARA ACTUALIZAR UN REGISTRO)
+def patch_values(db: Session, table_name: str, record_id: int, data: dict):
+    table, primary_key_column = get_table(table_name)  # Obtener la tabla y la clave primaria
+    try:
+        result = db.execute(
+            table.update()
+            .where(getattr(table.c, primary_key_column) == record_id)
+            .values(**data)
+        )
+        db.commit()
+        return result.rowcount
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise Exception(f"Database error: {e}")
+    
+#Integracion de las nuevas funciones CRUD (METODO PARA ELIMINAR UN REGISTRO)
+def delete_values(db: Session, table_name: str, record_id: int):
+    table, primary_key_column = get_table(table_name)  # Obtener la tabla y la clave primaria
+    try:
+        result = db.execute(
+            table.delete()
+            .where(getattr(table.c, primary_key_column) == record_id)
+        )
+        db.commit()
+        return result.rowcount
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise Exception(f"Database error: {e}")
+    
+#Integracion de las nuevas funciones CRUD (METODO PARA OBTENER UN REGISTRO)
+def get_values(db: Session, table_name: str, record_id: int):
+    table, primary_key_column = get_table(table_name)  # Obtener la tabla y la clave primaria
+    try:
+        result = db.execute(
+            table.select()
+            .where(getattr(table.c, primary_key_column) == record_id)
+        )
+        return result.fetchone()
+    except SQLAlchemyError as e:
+        raise Exception(f"Database error: {e}")

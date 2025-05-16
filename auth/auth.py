@@ -86,11 +86,9 @@ def register():
         print("Correo enviado con éxito.")
     except Exception as e:
         print("Error al enviar el correo:", e)
-
-
-
-
     return jsonify({'message': 'User registrado con exito', 'Token': token})
+
+
 
 #  Metodo para hacer la validacion del User (Primer endpoint-GET)
 @auth_bp.route('/validation', methods=['GET'])
@@ -106,6 +104,7 @@ def validation():
     user.validated = True
     db.session.commit()
     return jsonify({'message': 'Cuenta validada correctamente'})
+
 
 # Metodo para hacer el login del User (Primer endpoint-POST)
 @auth_bp.route('/login', methods=['POST'])

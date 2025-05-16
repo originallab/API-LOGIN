@@ -14,6 +14,7 @@ COPY . .
 # Expone el puerto en el que se ejecutará la aplicación (por defecto Flask usa el 5000)
 EXPOSE 5000
 
+
 # Establece la variable de entorno para indicar a Flask cuál es la aplicación
 ENV FLASK_APP=app.py
 ENV FLASK_RUN_HOST=0.0.0.0
