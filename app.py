@@ -81,3 +81,12 @@ def get_values(db: Session, table_name: str, record_id: int):
     
 
     #hola mundo
+    def get_all_records_db(table_name: str):
+    """Obtiene todos los registros de una tabla"""
+    table, _ = get_table(table_name)  # No necesitamos la primary_key aquí
+    try:
+        records = table.query.all()
+        # Convertir cada registro a un diccionario
+        return [{col.name: getattr(record, col.name) for col in record.__table__.columns} for record in records]
+    except Exception as e:
+        raise Exception(f"Error al obtener registros: {str(e)}")

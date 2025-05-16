@@ -265,3 +265,15 @@ def delete_record(current_user, table_name, record_id):
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+    
+
+
+ @auth_bp.route('/<table_name>/all', methods=['GET'])
+@token_required
+def get_all_records(current_user, table_name):
+    """Endpoint para obtener todos los registros de una tabla"""
+    try:
+        records = get_all_records_db(table_name)
+        return jsonify(records)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
