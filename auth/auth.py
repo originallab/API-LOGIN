@@ -22,7 +22,7 @@ def decode_base64(password_b64):
 
 auth_bp = Blueprint('auth', __name__)
 
-# Configuración CORS para el blueprint
+# Configuración CORS
 @auth_bp.after_request 
 def after_request(response):
     header = response.headers
@@ -85,8 +85,36 @@ def register():
     db.session.add(nuevo)
     db.session.commit()
 
-    # Configuración y envío de correo (mantén tu implementación actual)
-    # ...
+    # Configuración de correo
+    MAIL_HOST = os.getenv('MAIL_HOST')
+    MAIL_PORT = int(os.getenv('MAIL_PORT'))
+    MAIL_SECURE = os.getenv('MAIL_SECURE', 'false').lower() == 'true'
+    MAIL_USERNAME = os.getenv('MAIL_USERNAME')
+    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
+    MAIL_SEND = os.getenv('MAIL_SEND')
+    BASE_URL = os.getenv('BASE_URL')
+
+    # Configurar email
+    destinatario = email
+    asunto = 'Verifica tu correo - The Original Lab'
+    cuerpo = f'Por favor valida tu cuenta haciendo click en el siguiente enlace: {BASE_URL}?email={email}&token={token}'
+
+    message = MIMEMultipart()
+    message['From'] = MAIL_SEND
+    message['To'] = destinatario
+    message['Subject'] = asunto
+    message.attach(MIMEText(cuerpo, 'plain'))
+
+    # Enviar correo
+    try:
+        with smtplib.SMTP(MAIL_HOST, MAIL_PORT) as servidor:
+            if not MAIL_SECURE:
+                servidor.starttls()
+            servidor.login(MAIL_USERNAME, MAIL_PASSWORD)
+            servidor.send_message(message)
+        print("Correo enviado con éxito.")
+    except Exception as e:
+        print("Error al enviar el correo:", e)
 
     return jsonify({
         'message': 'Usuario registrado con éxito',
@@ -110,7 +138,7 @@ def validation():
 def login():
     data = request.json
     email = data['email']
-    encoded_password = data.get('password')
+    encoded_password = data.get("password")
     
     try:
         password = base64.b64decode(encoded_password).decode('utf-8')
@@ -175,6 +203,19 @@ def get_record(current_user, table_name, record_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
+@auth_bp.route('/<table_name>/all', methods=['GET'])
+@token_required
+def get_all_records(current_user, table_name):
+    try:
+        table, _ = get_table(table_name)
+        records = table.query.all()
+        return jsonify([
+            {col.name: getattr(record, col.name) for col in record.__table__.columns}
+            for record in records
+        ])
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
 @auth_bp.route('/<table_name>/<int:record_id>', methods=['PUT', 'PATCH'])
 @token_required
 def update_record(current_user, table_name, record_id):
@@ -208,17 +249,4 @@ def delete_record(current_user, table_name, record_id):
         return jsonify({'message': 'Registro eliminado'})
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 400
-
-@auth_bp.route('/<table_name>/all', methods=['GET'])
-@token_required
-def get_all_records(current_user, table_name):
-    try:
-        table, _ = get_table(table_name)
-        records = table.query.all()
-        return jsonify([
-            {col.name: getattr(record, col.name) for col in record.__table__.columns}
-            for record in records
-        ])
-    except Exception as e:
         return jsonify({'error': str(e)}), 400
