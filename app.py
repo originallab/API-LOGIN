@@ -78,3 +78,6 @@ def get_values(db: Session, table_name: str, record_id: int):
         return result.fetchone()
     except SQLAlchemyError as e:
         raise Exception(f"Database error: {e}")
+    
+
+    #hola mundo
