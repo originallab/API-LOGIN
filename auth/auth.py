@@ -151,3 +151,117 @@ def login():
     token_jwt = jwt.encode(payload, current_app.config['SECRET_KEY'], algorithm='HS256')
 
     return jsonify({'token': token_jwt})
+
+
+
+    # ==============================================
+# Métodos CRUD Genéricos
+# ==============================================
+
+def get_table(table_name: str):
+    """Función auxiliar para obtener la tabla y su clave primaria"""
+    tables = {
+        "users": (User, "user_id"),  # Añade aquí otras tablas que necesites
+    }
+    if table_name not in tables:
+        raise Exception(f"Tabla {table_name} no encontrada")
+    return tables[table_name]
+
+def create_record_db(table_name: str, data: dict):
+    """Crea un nuevo registro en la tabla especificada"""
+    table, primary_key = get_table(table_name)
+    try:
+        new_record = table(**data)
+        db.session.add(new_record)
+        db.session.commit()
+        return {primary_key: getattr(new_record, primary_key)}
+    except Exception as e:
+        db.session.rollback()
+        raise Exception(f"Error al crear registro: {str(e)}")
+
+def get_record_db(table_name: str, record_id: int):
+    """Obtiene un registro específico"""
+    table, primary_key = get_table(table_name)
+    record = table.query.filter_by(**{primary_key: record_id}).first()
+    if not record:
+        raise Exception("Registro no encontrado")
+    return record
+
+def update_record_db(table_name: str, record_id: int, data: dict):
+    """Actualiza un registro existente"""
+    table, primary_key = get_table(table_name)
+    try:
+        record = table.query.filter_by(**{primary_key: record_id}).first()
+        if not record:
+            raise Exception("Registro no encontrado")
+        
+        for key, value in data.items():
+            setattr(record, key, value)
+        
+        db.session.commit()
+        return {"message": "Registro actualizado correctamente"}
+    except Exception as e:
+        db.session.rollback()
+        raise Exception(f"Error al actualizar registro: {str(e)}")
+
+def delete_record_db(table_name: str, record_id: int):
+    """Elimina un registro"""
+    table, primary_key = get_table(table_name)
+    try:
+        record = table.query.filter_by(**{primary_key: record_id}).first()
+        if not record:
+            raise Exception("Registro no encontrado")
+        
+        db.session.delete(record)
+        db.session.commit()
+        return {"message": "Registro eliminado correctamente"}
+    except Exception as e:
+        db.session.rollback()
+        raise Exception(f"Error al eliminar registro: {str(e)}")
+
+# ==============================================
+# Endpoints CRUD
+# ==============================================
+
+@auth_bp.route('/<table_name>', methods=['POST'])
+@token_required
+def create_record(current_user, table_name):
+    """Endpoint para crear un nuevo registro"""
+    try:
+        data = request.json
+        result = create_record_db(table_name, data)
+        return jsonify(result), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@auth_bp.route('/<table_name>/<int:record_id>', methods=['GET'])
+@token_required
+def read_record(current_user, table_name, record_id):
+    """Endpoint para obtener un registro específico"""
+    try:
+        record = get_record_db(table_name, record_id)
+        # Convertir el objeto SQLAlchemy a diccionario
+        return jsonify({col.name: getattr(record, col.name) for col in record.__table__.columns})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 404
+
+@auth_bp.route('/<table_name>/<int:record_id>', methods=['PUT', 'PATCH'])
+@token_required
+def update_record(current_user, table_name, record_id):
+    """Endpoint para actualizar un registro"""
+    try:
+        data = request.json
+        result = update_record_db(table_name, record_id, data)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@auth_bp.route('/<table_name>/<int:record_id>', methods=['DELETE'])
+@token_required
+def delete_record(current_user, table_name, record_id):
+    """Endpoint para eliminar un registro"""
+    try:
+        result = delete_record_db(table_name, record_id)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
