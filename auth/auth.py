@@ -65,6 +65,7 @@ def register():
     password = data['password']
     phone = data.get('phone', "")
     profile_img = data.get('profile_img', "")
+    apps = data.get('apps', "")
 
     if User.query.filter_by(email=email).first():
         return jsonify({'message': 'Email ya registrado'}), 400
@@ -79,7 +80,8 @@ def register():
         phone=phone,
         profile_img=profile_img,
         token=token,
-        validated=False
+        validated=False,
+        apps=apps
     )
     
     db.session.add(nuevo)
