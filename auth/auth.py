@@ -95,11 +95,12 @@ def register():
     MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
     MAIL_SEND = os.getenv('MAIL_SEND')
     BASE_URL = os.getenv('BASE_URL')
+    VALIDATION_PATH = os.getenv('VALIDATION_PATH', '/validacion')
 
     # Configurar email
     destinatario = email
     asunto = 'Verifica tu correo - The Original Lab'
-    cuerpo = f'Por favor valida tu cuenta haciendo click en el siguiente enlace: {BASE_URL}?email={email}&token={token}'
+    cuerpo = f'Por favor valida tu cuenta haciendo click en el siguiente enlace: {BASE_URL}{VALIDATION_PATH}?email={email}&token={token}'
 
     message = MIMEMultipart()
     message['From'] = MAIL_SEND
