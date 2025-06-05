@@ -100,7 +100,7 @@ def register():
     # Configurar email
     destinatario = email
     asunto = 'Verifica tu correo - The Original Lab'
-    cuerpo = f'Por favor valida tu cuenta haciendo click en el siguiente enlace: {BASE_URL}{VALIDATION_PATH}?email={email}&token={token}'
+    cuerpo = f'Por favor valida tu cuenta haciendo click en el siguiente enlace: {BASE_URL}?email={email}&token={token}'
 
     message = MIMEMultipart()
     message['From'] = MAIL_SEND
