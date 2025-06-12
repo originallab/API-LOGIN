@@ -224,7 +224,7 @@ def login():
         'name': user.name,
         'phone': user.phone,
         'profile_img': user.profile_img,
-        response_app_callback: response_app_callback
+        'response_app_callback': response_app_callback
     }
     
     if token_app and app:
