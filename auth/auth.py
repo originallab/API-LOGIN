@@ -11,6 +11,8 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import base64
 from functools import wraps
+import requests
+
 
 #FUNCION PARA DECODIFICAR EN BASE64
 def decode_base64(password_b64):
@@ -173,7 +175,6 @@ def login():
     if not user:
         return jsonify({'message': 'Usuario no existe'}), 404
     
-    # Aquí está la corrección - manejar el hash correctamente
     stored_hash = user.password
     if isinstance(stored_hash, str):
         stored_hash = stored_hash.encode('utf-8')
@@ -184,6 +185,28 @@ def login():
     if not user.validated:
         return jsonify({'message': 'La cuenta no ha sido validada'}), 403
     
+    #aqui el usuario ya pasó todas las validaciones.
+    #aqui hay que llamar al callback de la app
+    #app.callback_url
+    data = {
+        "session": session,
+        "token_app": app.token_app,
+        "secret_key": app.secret_key,
+        "email": user.email,
+        "name": user.name,
+        "phone": user.phone,
+        "profile_img": user.profile_img
+    }
+
+    response = requests.post(app.callback_url, json=data)
+
+    if response.status_code == 200:
+        print("Solicitud POST realizada con éxito")
+        respuesta_json = response.json()
+        print(respuesta_json)
+    else:
+        print(f"Error al realizar la solicitud POST. Código de estado: {response.status_code}")
+
     token = jwt.encode({
         'user_id': user.user_id,
         'exp': datetime.utcnow() + timedelta(hours=1)
