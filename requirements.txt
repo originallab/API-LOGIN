@@ -5,3 +5,4 @@ bcrypt==4.0.1
 PyJWT==2.6.0
 python-dotenv==1.0.0
 flask_cors==3.0.10
+requests>=2.31.0
