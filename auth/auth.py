@@ -188,24 +188,30 @@ def login():
     #aqui el usuario ya pasó todas las validaciones.
     #aqui hay que llamar al callback de la app
     #app.callback_url
-    data = {
-        "session": session,
-        "token_app": app.token_app,
-        "secret_key": app.secret_key,
-        "email": user.email,
-        "name": user.name,
-        "phone": user.phone,
-        "profile_img": user.profile_img
-    }
+    response_app_callback = ''
+    if token_app and app:
+        data = {
+            "session": session,
+            "token_app": app.token_app,
+            "secret_key": app.secret_key,
+            "email": user.email,
+            "name": user.name,
+            "phone": user.phone,
+            "profile_img": user.profile_img
+        }
 
-    response = requests.post(app.callback_url, json=data)
+        response = requests.post(app.callback_url, json=data)
 
-    if response.status_code == 200:
-        print("Solicitud POST realizada con éxito")
-        respuesta_json = response.json()
-        print(respuesta_json)
+        if response.status_code == 200:
+            print("Solicitud POST realizada con éxito")
+            respuesta_json = response.json()
+            print(respuesta_json)
+            response_app_callback = "Solicitud POST realizada con éxito"
+        else:
+            print(f"Error al realizar la solicitud POST. Código de estado: {response.status_code}")
+            response_app_callback = f"Error al realizar la solicitud POST. Código de estado: {response.status_code}"
     else:
-        print(f"Error al realizar la solicitud POST. Código de estado: {response.status_code}")
+        response_app_callback = 'No viene token_app'
 
     token = jwt.encode({
         'user_id': user.user_id,
@@ -217,7 +223,8 @@ def login():
         'email': user.email,
         'name': user.name,
         'phone': user.phone,
-        'profile_img': user.profile_img
+        'profile_img': user.profile_img,
+        response_app_callback: response_app_callback
     }
     
     if token_app and app:
