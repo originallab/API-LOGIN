@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, current_app
-from models import db, User
+from models import db, User, App
 import bcrypt
 import jwt
 import random
@@ -11,7 +11,10 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import base64
 from functools import wraps
+import requests
 
+
+#FUNCION PARA DECODIFICAR EN BASE64
 def decode_base64(password_b64):
     try:
         decoded = base64.b64decode(password_b64).decode('utf-8')
@@ -22,7 +25,7 @@ def decode_base64(password_b64):
 
 auth_bp = Blueprint('auth', __name__)
 
-# Configuración CORS
+# CCONFIGURACIÓN DE CORS
 @auth_bp.after_request 
 def after_request(response):
     header = response.headers
@@ -57,8 +60,18 @@ def generar_token():
 
 # ============ ENDPOINTS DE AUTENTICACIÓN ============
 
+# ============ ENDPOINT DE REGISTRO ============
 @auth_bp.route('/register', methods=['POST'])
 def register():
+
+    token_app = request.args.get('toke_app')
+    session = request.args.get('session')
+
+    if token_app:
+        app = App.query.filter_by(token_app=token_app).first()
+        if not app:
+            return jsonify({'message': 'App no existe'}), 404
+
     data = request.json
     email = data['email'].lower()
     name = data['name']
@@ -97,7 +110,7 @@ def register():
     BASE_URL = os.getenv('BASE_URL')
     VALIDATION_PATH = os.getenv('VALIDATION_PATH', '/validacion')
 
-    # Configurar email
+    # MENSAJE DEL EMAIL
     destinatario = email
     asunto = 'Verifica tu correo - The Original Lab'
     cuerpo = f'Por favor valida tu cuenta haciendo click en el siguiente enlace: {BASE_URL}?email={email}&token={token}'
@@ -108,7 +121,7 @@ def register():
     message['Subject'] = asunto
     message.attach(MIMEText(cuerpo, 'plain'))
 
-    # Enviar correo
+    # ENVIO DE EMAIL
     try:
         with smtplib.SMTP(MAIL_HOST, MAIL_PORT) as servidor:
             if not MAIL_SECURE:
@@ -124,11 +137,13 @@ def register():
         'token_verificacion': token
     }), 201
 
+# ============ ENDPOINT  DE VALIDACION ============
 @auth_bp.route('/validation', methods=['GET'])
 def validation():
     email = request.args.get('email')
     token = request.args.get('token')
 
+    #VALIDACION DEL TOKEN
     user = User.query.filter_by(email=email, token=token).first()
     if not user:
         return jsonify({'message': 'Token inválido'}), 400
@@ -137,33 +152,89 @@ def validation():
     db.session.commit()
     return jsonify({'message': 'Cuenta validada correctamente'})
 
+# ============ ENDPOINT DE LOGIN ============
 @auth_bp.route('/login', methods=['POST'])
 def login():
+    # VALIDACION DEL TOKEN APP
+    token_app = request.args.get('token_app')
+    session = request.args.get('session')
+    
+    if token_app:
+        app = App.query.filter_by(token_app=token_app).first()
+        if not app:
+            return jsonify({'message': 'App no existe'}), 404
+            
     data = request.json
     email = data['email']
     encoded_password = data.get("password")
     
+    # DECODIFICACION  DE LA CONTRASEÑA EN BASE 64
     try:
         password = base64.b64decode(encoded_password).decode('utf-8')
     except Exception as e:
         return jsonify({"error": "Formato de contraseña inválido"}), 400
-
+    
+    # VALIDACION DEL USUARIO
     user = User.query.filter_by(email=email).first()
     if not user:
         return jsonify({'message': 'Usuario no existe'}), 404
-
-    if not bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
+    
+    # VALIDACION DE LA CONTRASEÑA
+    stored_hash = user.password
+    if isinstance(stored_hash, str):
+        stored_hash = stored_hash.encode('utf-8')
+    
+    if not bcrypt.checkpw(password.encode('utf-8'), stored_hash):
         return jsonify({'message': 'Contraseña incorrecta'}), 401
-
+    
     if not user.validated:
-        return jsonify({'message': 'Cuenta no validada'}), 403
+        return jsonify({'message': 'La cuenta no ha sido validada'}), 403
+    
+    # LLAMADA AL ENDPOINT CALLBACK 
+    
+    response_app_callback = ''
+    if token_app and session and app:
+        data = {
+            "session": session,
+            "token_app": app.token_app,
+            "secret_key": app.secret_key,
+            "email": user.email,
+            "name": user.name,
+            "phone": user.phone,
+            "profile_img": user.profile_img
+        }
+
+        response = requests.post(app.callback_url, json=data)
+
+        if response.status_code == 200:
+            print("Solicitud POST realizada con éxito")
+            respuesta_json = response.json()
+            print(respuesta_json)
+            response_app_callback = "Solicitud POST realizada con éxito"
+        else:
+            print(f"Error al realizar la solicitud POST. Código de estado: {response.status_code}")
+            response_app_callback = f"Error al realizar la solicitud POST. Código de estado: {response.status_code}"
+    else:
+        response_app_callback = 'No viene token_app'
 
     token = jwt.encode({
         'user_id': user.user_id,
         'exp': datetime.utcnow() + timedelta(hours=1)
     }, current_app.config['SECRET_KEY'], algorithm='HS256')
-
-    return jsonify({'token': token})
+    
+    response = {
+        'token': token,
+        'email': user.email,
+        'name': user.name,
+        'phone': user.phone,
+        'profile_img': user.profile_img,
+        'response_app_callback': response_app_callback
+    }
+    
+    if token_app and app:
+        response['return_url'] = app.return_url
+    
+    return jsonify(response)
 
 # ============ ENDPOINTS CRUD GENÉRICOS ============
 

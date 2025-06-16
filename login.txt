@@ -1,0 +1,51 @@
+@auth_bp.route('/login', methods=['POST'])
+def login():
+    token_app = request.args.get('token_app')
+    session = request.args.get('session')
+    
+    if token_app:
+        app = App.query.filter_by(token_app=token_app).first()
+        if not app:
+            return jsonify({'message': 'App no existe'}), 404
+            
+    data = request.json
+    email = data['email']
+    encoded_password = data.get("password")
+    
+    try:
+        password = base64.b64decode(encoded_password).decode('utf-8')
+    except Exception as e:
+        return jsonify({"error": "Formato de contraseña inválido"}), 400
+    
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({'message': 'Usuario no existe'}), 404
+    
+    # Aquí está la corrección - manejar el hash correctamente
+    stored_hash = user.password
+    if isinstance(stored_hash, str):
+        stored_hash = stored_hash.encode('utf-8')
+    
+    if not bcrypt.checkpw(password.encode('utf-8'), stored_hash):
+        return jsonify({'message': 'Contraseña incorrecta'}), 401
+    
+    if not user.validated:
+        return jsonify({'message': 'La cuenta no ha sido validada'}), 403
+    
+    token = jwt.encode({
+        'user_id': user.user_id,
+        'exp': datetime.utcnow() + timedelta(hours=1)
+    }, current_app.config['SECRET_KEY'], algorithm='HS256')
+    
+    response = {
+        'token': token,
+        'email': user.email,
+        'name': user.name,
+        'phone': user.phone,
+        'profile_img': user.profile_img
+    }
+    
+    if token_app and app:
+        response['return_url'] = app.return_url
+    
+    return jsonify(response)

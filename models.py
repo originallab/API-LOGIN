@@ -14,3 +14,12 @@ class User(db.Model):
     apps = db.Column(db.String(255), nullable=True)
     token = db.Column(db.String(120))
     validated = db.Column(db.Boolean, default=False)
+
+class App(db.Model):
+    app_id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255),  nullable=False)
+    token_app = db.Column(db.String(255),default=False)
+    secret_key = db.Column(db.String(255),default=False)
+    return_url = db.Column(db.String(255),default=False)
+    callback_url = db.Column(db.String(255),default=False)
+    allows_registration = db.Column(db.Integer,default=False)
