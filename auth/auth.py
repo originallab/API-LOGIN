@@ -60,7 +60,7 @@ def generar_token():
 
 # ============ ENDPOINTS DE AUTENTICACIÓN ============
 
-# FUNCION REGISTRO
+# ============ ENDPOINT DE REGISTRO ============
 @auth_bp.route('/register', methods=['POST'])
 def register():
 
@@ -137,12 +137,13 @@ def register():
         'token_verificacion': token
     }), 201
 
-#FUNCION VALIDADCIÓN
+# ============ ENDPOINT  DE VALIDACION ============
 @auth_bp.route('/validation', methods=['GET'])
 def validation():
     email = request.args.get('email')
     token = request.args.get('token')
 
+    #VALIDACION DEL TOKEN
     user = User.query.filter_by(email=email, token=token).first()
     if not user:
         return jsonify({'message': 'Token inválido'}), 400
@@ -151,9 +152,10 @@ def validation():
     db.session.commit()
     return jsonify({'message': 'Cuenta validada correctamente'})
 
-#FUNCION LOGIN 
+# ============ ENDPOINT DE LOGIN ============
 @auth_bp.route('/login', methods=['POST'])
 def login():
+    # VALIDACION DEL TOKEN APP
     token_app = request.args.get('token_app')
     session = request.args.get('session')
     
@@ -166,15 +168,18 @@ def login():
     email = data['email']
     encoded_password = data.get("password")
     
+    # DECODIFICACION  DE LA CONTRASEÑA EN BASE 64
     try:
         password = base64.b64decode(encoded_password).decode('utf-8')
     except Exception as e:
         return jsonify({"error": "Formato de contraseña inválido"}), 400
     
+    # VALIDACION DEL USUARIO
     user = User.query.filter_by(email=email).first()
     if not user:
         return jsonify({'message': 'Usuario no existe'}), 404
     
+    # VALIDACION DE LA CONTRASEÑA
     stored_hash = user.password
     if isinstance(stored_hash, str):
         stored_hash = stored_hash.encode('utf-8')
@@ -185,11 +190,10 @@ def login():
     if not user.validated:
         return jsonify({'message': 'La cuenta no ha sido validada'}), 403
     
-    #aqui el usuario ya pasó todas las validaciones.
-    #aqui hay que llamar al callback de la app
-    #app.callback_url
+    # LLAMADA AL ENDPOINT CALLBACK 
+    
     response_app_callback = ''
-    if token_app and app:
+    if token_app and session and app:
         data = {
             "session": session,
             "token_app": app.token_app,
