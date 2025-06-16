@@ -156,8 +156,8 @@ def validation():
 @auth_bp.route('/login', methods=['POST'])
 def login():
     # VALIDACION DEL TOKEN APP
-    token_app = request.args.get('token_app')
-    session = request.args.get('session')
+    token_app = request.json.get('token_app')
+    session = request.json.get('session')
     
     if token_app:
         app = App.query.filter_by(token_app=token_app).first()
